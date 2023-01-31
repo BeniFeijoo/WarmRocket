@@ -51,7 +51,11 @@ public class Player : MonoBehaviour
         }
         if (isCharging)
         {
-            myRigidbody.velocity = new Vector2(0, 0);
+            if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground")))
+            {
+                Debug.Log("Freeze");
+                myRigidbody.velocity = new Vector2(0, 0);
+            }
             timeChargedJumpOnSeconds += Time.deltaTime;
         }
         if (Input.GetKeyUp(KeyCode.Space) && isCharging || timeChargedJumpOnSeconds > maxTimeChargedJumpOnSeconds)
@@ -84,7 +88,6 @@ public class Player : MonoBehaviour
             {
                 fallingGravity = 5;
             }
-            Debug.Log("FallingGravity: " + fallingGravity);
             myRigidbody.gravityScale = fallingGravity;
         }
         if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground")))
