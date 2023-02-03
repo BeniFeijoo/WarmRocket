@@ -7,22 +7,37 @@ public class Player : MonoBehaviour
     Rigidbody2D myRigidbody;
     CapsuleCollider2D myBodyCollider;
     BoxCollider2D myFeetCollider;
+    SpriteRenderer mySpriteRendere;
 
-    [SerializeField] float moveSpeed = 5f;
-    [SerializeField] float initSpeedJump = 5f;
-    [SerializeField] float speedJump = 5f;
+    [Header("Movement")]
+    [SerializeField] float moveSpeed = 15f;
+    [Header("Jumping")]
+    [SerializeField] float initSpeedJump = 20f;
+    [SerializeField] float speedJump = 20f;
     float timeChargedJumpOnSeconds = 0f;
-    float maxTimeChargedJumpOnSeconds = 2f;
+    [SerializeField] float maxTimeChargedJumpOnSeconds = 1f;
+
+    [SerializeField] Sprite idleSprite;
+    [SerializeField] Sprite jumpSprite;
     bool isCharging = false;
+
+    [Header("Gravity")]
+    [SerializeField] float normalGravity = 12f;
+    [SerializeField] float baseFallingGravity;
+    [SerializeField] float fallingGravity = 17f;
+    [SerializeField] float maxFallingGravity;
     bool isAlive = true;
 
-    float normalGravity = 1f;
-    float fallingGravity = 2f;
-
+    void Awake()
+    {
+        baseFallingGravity = fallingGravity;
+        maxFallingGravity = baseFallingGravity + 3f;
+    }
     void Start()
     {
         myRigidbody = GetComponent<Rigidbody2D>();
         myBodyCollider = GetComponent<CapsuleCollider2D>();
+        mySpriteRendere = GetComponent<SpriteRenderer>();
         myFeetCollider = GetComponent<BoxCollider2D>();
     }
 
@@ -33,6 +48,11 @@ public class Player : MonoBehaviour
             Run();
             Jump();
             UpAndDown();
+        }
+
+        if (myRigidbody.velocity.y < 0)
+        {
+            Debug.Log(myRigidbody.velocity.y);
         }
     }
 
@@ -51,15 +71,16 @@ public class Player : MonoBehaviour
         }
         if (isCharging)
         {
-            if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground")))
+            if (myRigidbody.velocity.y == 0)
             {
-                Debug.Log("Freeze");
                 myRigidbody.velocity = new Vector2(0, 0);
+                mySpriteRendere.sprite = jumpSprite;
             }
             timeChargedJumpOnSeconds += Time.deltaTime;
         }
         if (Input.GetKeyUp(KeyCode.Space) && isCharging || timeChargedJumpOnSeconds > maxTimeChargedJumpOnSeconds)
         {
+            mySpriteRendere.sprite = idleSprite;
             isCharging = false;
             speedJump = Mathf.Round(speedJump + (speedJump * timeChargedJumpOnSeconds));
             doJump(speedJump);
@@ -69,7 +90,7 @@ public class Player : MonoBehaviour
     }
     void doJump(float jumpSpeed)
     {
-        if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground")))
+        if (myRigidbody.velocity.y == 0)
         {
             myRigidbody.velocity += new Vector2(0f, jumpSpeed);
         }
@@ -79,20 +100,17 @@ public class Player : MonoBehaviour
     {
         if (myRigidbody.velocity.y >= 0)
         {
+            fallingGravity = baseFallingGravity;
             myRigidbody.gravityScale = normalGravity;
         }
         else if (myRigidbody.velocity.y < 0)
         {
             fallingGravity += normalGravity * Time.deltaTime;
-            if (fallingGravity > 5)
+            if (fallingGravity > maxFallingGravity)
             {
-                fallingGravity = 5;
+                fallingGravity = maxFallingGravity;
             }
             myRigidbody.gravityScale = fallingGravity;
-        }
-        if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground")))
-        {
-            fallingGravity = 2f;
         }
     }
 }
